@@ -15,6 +15,22 @@ class Application extends Model
     /** @use HasFactory<ApplicationFactory> */
     use HasFactory;
 
+    protected $attributes = [
+        'status' => ApplicationStatus::Wishlist->value,
+    ];
+
+    protected static function booted(): void
+    {
+        // FR-7: moving to applied without a date stamps today.
+        static::saving(function (Application $application) {
+            if ($application->isDirty('status')
+                && $application->status === ApplicationStatus::Applied
+                && $application->applied_at === null) {
+                $application->applied_at = today();
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
